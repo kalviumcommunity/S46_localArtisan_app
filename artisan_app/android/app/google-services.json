@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "115852975562",
+    "project_id": "localartisan-7a177",
+    "storage_bucket": "localartisan-7a177.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:115852975562:android:fe25c02171bda3c4cd4333",
+        "android_client_info": {
+          "package_name": "com.example.artisan_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA0cl0SrIKqrodnhYmkM3XjqS3Uc5qPrj4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
