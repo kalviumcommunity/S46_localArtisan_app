@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_REAL_API_KEY_IF_KNOWN', // We might need to find this elsewhere or ask the user
+    apiKey: 'AIzaSyA0cl0SrIKqrodnhYmkM3XjqS3Uc5qPrj4',
     appId: '1:115852975562:web:b74f3b39c286cc5acd4333',
     messagingSenderId: '115852975562',
     projectId: 'localartisan-7a177',
@@ -50,7 +50,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_REAL_API_KEY_IF_KNOWN',
+    apiKey: 'AIzaSyA0cl0SrIKqrodnhYmkM3XjqS3Uc5qPrj4',
     appId: '1:115852975562:android:fe25c02171bda3c4cd4333',
     messagingSenderId: '115852975562',
     projectId: 'localartisan-7a177',

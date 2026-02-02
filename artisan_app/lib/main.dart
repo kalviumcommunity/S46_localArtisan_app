@@ -10,6 +10,9 @@ import 'features/common/profile_screen.dart';
 import 'features/artisan/artisan_profile_setup.dart';
 import 'features/artisan/artisan_dashboard.dart';
 import 'features/artisan/product_management.dart';
+import 'features/auth/auth_wrapper.dart';
+import 'features/auth/login_screen.dart';
+import 'features/auth/signup_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,8 +31,12 @@ class LocalArtisanApp extends StatelessWidget {
       title: 'Local Artisan Digital Storefront',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      initialRoute: '/customer-home',
+      home: const AuthWrapper(),
       routes: {
+        // Auth Flow
+        '/login': (context) => const LoginScreen(),
+        '/signup': (context) => const SignUpScreen(),
+
         // Artisan Flow
         '/artisan-setup': (context) => const ArtisanProfileSetup(),
         '/artisan-dashboard': (context) => const ArtisanDashboard(),
