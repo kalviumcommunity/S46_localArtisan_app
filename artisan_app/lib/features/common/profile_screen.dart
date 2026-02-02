@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../core/colors.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -103,7 +104,7 @@ class ProfileScreen extends StatelessWidget {
             
             const SizedBox(height: 32),
             OutlinedButton.icon(
-              onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+              onPressed: () => FirebaseAuth.instance.signOut(),
               icon: const Icon(Icons.logout_rounded, size: 20),
               label: const Text('Log Out'),
               style: OutlinedButton.styleFrom(
