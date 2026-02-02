@@ -1,0 +1,12 @@
+name: backend
+description: A modular backend package for the Artisan App.
+version: 0.0.1
+publish_to: 'none'
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  firebase_core: ^3.10.1
+  firebase_auth: ^5.4.4
+  cloud_firestore: ^5.6.2
