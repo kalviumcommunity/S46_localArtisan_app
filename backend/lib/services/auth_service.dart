@@ -14,7 +14,7 @@ class AuthService {
     required String email,
     required String password,
     required String fullName,
-    required UserRole role,
+    UserRole? role,
   }) async {
     try {
       UserCredential result = await _auth.createUserWithEmailAndPassword(
@@ -22,8 +22,8 @@ class AuthService {
         password: password,
       );
 
-      // Create profile in Firestore
-      if (result.user != null) {
+      // Create profile in Firestore only if role is provided
+      if (result.user != null && role != null) {
         AppUser newUser = AppUser(
           uid: result.user!.uid,
           email: email,
@@ -32,6 +32,13 @@ class AuthService {
           createdAt: DateTime.now(),
         );
         await _firestoreService.createUserProfile(newUser);
+      } else if (result.user != null) {
+        // Create a minimal profile with no role yet, 
+        // to be updated in RoleSelectionScreen
+        // Note: AppUser model requires a role currently, so we might need to 
+        // either update the model or just let RoleSelectionScreen create it later.
+        // For now, let's just NOT create the profile here if role is null.
+        // AuthWrapper will see profiling is missing and show selection.
       }
 
       return result;
