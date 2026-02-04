@@ -13,6 +13,8 @@ import 'features/artisan/product_management.dart';
 import 'features/auth/auth_wrapper.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/signup_screen.dart';
+import 'features/onboarding/onboarding_screen.dart';
+import 'features/auth/role_selection_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,9 +35,13 @@ class LocalArtisanApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       home: const AuthWrapper(),
       routes: {
+        // Onboarding
+        '/onboarding': (context) => const OnboardingScreen(),
+
         // Auth Flow
         '/login': (context) => const LoginScreen(),
         '/signup': (context) => const SignUpScreen(),
+        '/role-selection': (context) => const RoleSelectionScreen(),
 
         // Artisan Flow
         '/artisan-setup': (context) => const ArtisanProfileSetup(),

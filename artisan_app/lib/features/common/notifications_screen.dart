@@ -6,7 +6,7 @@ class NotificationsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // theme not required here; using AppColors and direct Colors instead.
     final notifications = [
       {
         'title': 'Order Delivered',

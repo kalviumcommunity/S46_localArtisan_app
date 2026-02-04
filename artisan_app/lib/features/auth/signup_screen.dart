@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:backend/services/auth_service.dart';
-import 'package:backend/models/user_model.dart';
 import '../../core/colors.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -16,11 +15,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _authService = AuthService();
-  
-  UserRole _selectedRole = UserRole.customer;
   bool _isLoading = false;
   bool _obscurePassword = true;
-
+  
   Future<void> _handleSignUp() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -30,11 +27,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
         fullName: _fullNameController.text.trim(),
-        role: _selectedRole,
       );
       if (mounted) {
-        // Navigate based on role or to home
-        Navigator.pushReplacementNamed(context, '/customer-home');
+        // After signup, send user to role selection instead of directly opening a dashboard
+        Navigator.pushReplacementNamed(context, '/role-selection');
       }
     } catch (e) {
       if (mounted) {
@@ -90,35 +86,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
                 const SizedBox(height: 32),
                 
-                // Role Selection
-                Text(
-                  'I am a...',
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _RoleCard(
-                        title: 'Customer',
-                        icon: Icons.shopping_bag_outlined,
-                        isSelected: _selectedRole == UserRole.customer,
-                        onTap: () => setState(() => _selectedRole = UserRole.customer),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _RoleCard(
-                        title: 'Artisan',
-                        icon: Icons.storefront_outlined,
-                        isSelected: _selectedRole == UserRole.artisan,
-                        onTap: () => setState(() => _selectedRole = UserRole.artisan),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 32),
-
                 // Full Name
                 Text(
                   'Full Name',
@@ -211,55 +178,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _RoleCard extends StatelessWidget {
-  final String title;
-  final IconData icon;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _RoleCard({
-    required this.title,
-    required this.icon,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.05) : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.border,
-            width: isSelected ? 2 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              size: 32,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: TextStyle(
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
-          ],
         ),
       ),
     );

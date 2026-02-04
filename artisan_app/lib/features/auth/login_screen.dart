@@ -27,7 +27,8 @@ class _LoginScreenState extends State<LoginScreen> {
         _passwordController.text.trim(),
       );
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/customer-home');
+        // After successful login, direct user to role selection
+        Navigator.pushReplacementNamed(context, '/role-selection');
       }
     } catch (e) {
       if (mounted) {

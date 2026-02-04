@@ -1,50 +1,89 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:backend/services/auth_service.dart';
+import 'package:backend/services/firestore_service.dart';
+import 'package:backend/models/user_model.dart';
 import '../../core/colors.dart';
+import 'edit_profile_screen.dart';
+import 'address_management_screen.dart';
+import 'settings_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+import 'payment_methods_screen.dart';
+import 'help_support_screen.dart';
+
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  final AuthService _authService = AuthService();
+  final FirestoreService _firestoreService = FirestoreService();
+
+  Future<void> _handleLogout() async {
+    try {
+      await _authService.logout();
+      if (mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Logout failed: $e')));
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.settings_outlined, color: AppColors.textPrimary),
+    final user = _authService.currentUser;
+
+    if (user == null) {
+      return const Scaffold(body: Center(child: Text('No user logged in')));
+    }
+
+    return StreamBuilder<AppUser?>(
+      stream: _firestoreService.userProfileStream(user.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
+        final profile = snapshot.data;
+        if (profile == null) {
+          return const Scaffold(body: Center(child: Text('Profile not found')));
+        }
+
+        final canPop = Navigator.of(context).canPop();
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            title: const Text('Profile', style: TextStyle(fontWeight: FontWeight.bold)),
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: canPop ? IconButton(
+              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.textPrimary),
+              onPressed: () => Navigator.pop(context),
+            ) : null,
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            // Profile Summary Card
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(32),
-                border: Border.all(color: AppColors.border),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(5),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              children: [
+                // Profile Summary Card
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: [
+                      BoxShadow(color: Colors.black.withAlpha(5), blurRadius: 20, offset: const Offset(0, 10)),
+                    ],
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                   Stack(
-                    alignment: Alignment.bottomRight,
+                  child: Column(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(4),
@@ -52,80 +91,70 @@ class ProfileScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           border: Border.all(color: theme.primaryColor.withAlpha(50), width: 2),
                         ),
-                        child: const CircleAvatar(
+                        child: CircleAvatar(
                           radius: 40,
                           backgroundColor: AppColors.primary,
-                          child: Icon(Icons.person, size: 40, color: Colors.white),
+                          child: profile.profileImageUrl != null 
+                            ? ClipOval(child: Image.network(profile.profileImageUrl!, fit: BoxFit.cover))
+                            : const Icon(Icons.person, size: 40, color: Colors.white),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: theme.primaryColor,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white, width: 2),
-                        ),
-                        child: const Icon(Icons.edit_rounded, size: 12, color: Colors.white),
+                      const SizedBox(height: 16),
+                      Text(profile.fullName, style: theme.textTheme.titleLarge),
+                      Text(
+                        '${profile.role == UserRole.artisan ? 'Artisan' : 'Customer'}', 
+                        style: TextStyle(color: Colors.grey[500], fontSize: 13)
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Text('Kowsika Kumar', style: theme.textTheme.titleLarge),
-                  Text('Artisan • Joined Jan 2026', style: TextStyle(color: Colors.grey[500], fontSize: 13)),
-                  const SizedBox(height: 24),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _buildMiniStat('Orders', '42'),
-                      Container(width: 1, height: 24, color: Colors.grey[200], margin: const EdgeInsets.symmetric(horizontal: 20)),
-                      _buildMiniStat('Reviews', '124'),
-                      Container(width: 1, height: 24, color: Colors.grey[200], margin: const EdgeInsets.symmetric(horizontal: 20)),
-                      _buildMiniStat('Followers', '1.2k'),
-                    ],
+                ),
+                const SizedBox(height: 40),
+                
+                // Essential Actions
+                _buildSection(context, 'Account', [
+                  _buildSettingItem(Icons.edit_outlined, 'Edit Profile', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => EditProfileScreen(user: profile)));
+                  }),
+                  _buildNotificationToggle(profile),
+                  _buildSettingItem(Icons.help_outline_rounded, 'Help & Support', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpSupportScreen()));
+                  }),
+                ]),
+                
+                const SizedBox(height: 32),
+                OutlinedButton.icon(
+                  onPressed: _handleLogout,
+                  icon: const Icon(Icons.logout_rounded, size: 20),
+                  label: const Text('Log Out'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 60),
+                    foregroundColor: Colors.red,
+                    side: BorderSide(color: Colors.red.withAlpha(50)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 40),
-            
-            _buildSection(context, 'Account Management', [
-              _buildSettingItem(Icons.person_outline_rounded, 'Personal Information', () {}),
-              _buildSettingItem(Icons.payment_rounded, 'Payment Methods', () {}),
-              _buildSettingItem(Icons.location_on_outlined, 'Saved Addresses', () {}),
-            ]),
-            
-            const SizedBox(height: 24),
-            
-            _buildSection(context, 'App Settings', [
-              _buildSettingItem(Icons.notifications_none_rounded, 'Notification Preferences', () {}),
-              _buildSettingItem(Icons.security_rounded, 'Privacy & Security', () {}),
-              _buildSettingItem(Icons.help_outline_rounded, 'Help & Support', () {}),
-            ]),
-            
-            const SizedBox(height: 32),
-            OutlinedButton.icon(
-              onPressed: () => FirebaseAuth.instance.signOut(),
-              icon: const Icon(Icons.logout_rounded, size: 20),
-              label: const Text('Log Out'),
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(double.infinity, 60),
-                foregroundColor: Colors.red,
-                side: BorderSide(color: Colors.red.withAlpha(50)),
-              ),
-            ),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildMiniStat(String label, String value) {
-    return Column(
-      children: [
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-        Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 11)),
-      ],
+  Widget _buildNotificationToggle(AppUser profile) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(color: Colors.grey[50], shape: BoxShape.circle),
+        child: const Icon(Icons.notifications_none_rounded, size: 20, color: AppColors.textPrimary),
+      ),
+      title: const Text('Notifications', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+      trailing: Switch.adaptive(
+        value: true, // TODO: Pull from settings model
+        onChanged: (val) {},
+        activeColor: AppColors.primary,
+      ),
     );
   }
 
@@ -137,16 +166,9 @@ class ProfileScreen extends StatelessWidget {
           padding: const EdgeInsets.only(left: 8, bottom: 12),
           child: Text(title, style: TextStyle(color: Colors.grey[500], fontWeight: FontWeight.bold, fontSize: 12, letterSpacing: 0.5)),
         ),
-
         Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            children: items,
-          ),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: AppColors.border)),
+          child: Column(children: items),
         ),
       ],
     );
@@ -157,10 +179,7 @@ class ProfileScreen extends StatelessWidget {
       onTap: onTap,
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          shape: BoxShape.circle,
-        ),
+        decoration: BoxDecoration(color: Colors.grey[50], shape: BoxShape.circle),
         child: Icon(icon, size: 20, color: AppColors.textPrimary),
       ),
       title: Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
